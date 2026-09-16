@@ -11,6 +11,16 @@ const MAX_BODY = 2000;
 const MATH_SIGNAL =
   /[_^=+*/<>|≤≥≠≈∈∉⊂⊃∞∫∑∏√∂∇·×÷±∓→←⇒⇔∀∃λθαβγπσωμΔΩℝℂℕℤℚ{}\\^]/;
 
+/**
+ * A file path, e.g. `internal/infrastructure/groups/in_memory/repo.go:39`.
+ * Worth recognising explicitly because it trips two heuristics below at once:
+ * the separating slashes read as division and an `_` in a name like `in_memory`
+ * reads as a subscript, which together are enough for `isPlausibleParenMath` to
+ * accept a bracketed path as a formula. A path needs a slash and a file
+ * extension, so it is cheap to spot and never something a reader wanted typeset.
+ */
+const FILE_PATH = /\w\/[\w./-]*\.[A-Za-z][A-Za-z0-9]{0,9}(?::\d+)?/;
+
 const SIMPLE_IDENT = /^[A-Za-z][A-Za-z0-9]*$/;
 const ALL_CAPS_IDENT = /^[A-Z][A-Z0-9_]{2,}$/;
 const CURRENCY_OR_NUMBER =
@@ -42,6 +52,9 @@ export function isPlausibleInlineMath(body: string): boolean {
   if (!hasTexCommand && (/^\d/.test(body) || CURRENCY_OR_NUMBER.test(body))) {
     return false;
   }
+  // A TeX command still wins: `\frac{a}{b.c}` is maths that happens to look
+  // path-shaped. Without one, a path is a path.
+  if (!hasTexCommand && FILE_PATH.test(body)) return false;
   if (ALL_CAPS_IDENT.test(body)) return false;
   if (hasTexCommand || MATH_SIGNAL.test(body)) return true;
   if (GREEK.test(body) || FN_CALL.test(body)) return true;

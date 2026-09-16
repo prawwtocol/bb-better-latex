@@ -12,8 +12,13 @@ const PREVIEW = "[data-markdown-preview]";
 const LATEX_CLASS = "bb-latex";
 const OVERLAY_CLASS = "bb-latex-overlay";
 const HIDDEN_SOURCE_CLASS = "bb-latex-source-hidden";
+// `a` belongs here for the same reason `code` does: a rendered link is never
+// maths. Without it, a match whose delimiters sit on either side of a link
+// covers the anchor, and `deleteContents()` destroys it — the link is replaced
+// by a formula, and the renderer that owns the anchor puts it back beside the
+// formula rather than in place of it, leaving two copies of the same text.
 const SKIP_CLOSEST =
-  `pre, code, kbd, samp, script, style, textarea, .katex, .katex-display, .katex-error, .bb-latex, .${HIDDEN_SOURCE_CLASS}, [contenteditable='true']`;
+  `pre, code, kbd, samp, a, script, style, textarea, .katex, .katex-display, .katex-error, .bb-latex, .${HIDDEN_SOURCE_CLASS}, [contenteditable='true']`;
 const BLOCK_CLOSEST =
   "p, li, td, th, h1, h2, h3, h4, h5, h6, pre, blockquote, [data-markdown-preview]";
 const CROSS_BLOCK = "p, h1, h2, h3, h4, h5, h6";
